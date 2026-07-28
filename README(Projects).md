@@ -1,3 +1,5 @@
+Project-1
+
 # 🌱 Quantum Genetic Simulator for Crop Performance Optimisation
 
 A Hybrid Quantum Genetic Algorithm (HQGA) simulator that combines **quantum-inspired optimisation**, **genetic algorithms**, and **machine learning** to discover optimal crop genotypes capable of performing well under different environmental conditions.
@@ -228,3 +230,224 @@ This project is licensed under the MIT License.
 ---
 
 ## ⭐ If you found this project useful, consider giving it a star on GitHub!
+
+Project-2
+
+# 🚇 Metro Congestion Control System
+
+An AI-powered Metro Congestion Control System designed to monitor passenger traffic, predict congestion levels, and optimize station resource allocation in real time. The system uses predictive analytics and intelligent staff assignment to improve commuter safety and operational efficiency.
+
+---
+
+## 📌 Project Overview
+
+Urban metro systems experience heavy passenger congestion during peak hours, leading to delays and safety concerns. This project provides a smart congestion management solution that predicts passenger density, identifies overcrowded stations, and dynamically allocates staff to improve crowd management.
+
+The application is built using **Python** and **Flask**, with REST APIs serving real-time station data and predictive insights.
+
+---
+
+## ✨ Features
+
+- 🚉 Real-time metro station monitoring
+- 📈 Passenger congestion prediction
+- 👥 Intelligent staff allocation
+- 🔄 Dynamic congestion updates
+- 🌐 RESTful API using Flask
+- ⚡ Cross-Origin support using Flask-CORS
+- 📊 Congestion visualization
+- 🚨 Overcrowding detection and alerts
+
+---
+
+## 🛠 Technologies Used
+
+- Python
+- Flask
+- Flask-CORS
+- NumPy
+- Matplotlib
+- Machine Learning Concepts
+- REST API
+
+---
+
+## 📂 Project Structure
+
+```
+Metro-Congestion-Control-System/
+
+│── backend.py              # Flask backend API
+│── graph_logic.py          # Congestion prediction & visualization
+│── static/                 # CSS, JS, images
+│── templates/              # HTML pages
+│── README.md
+```
+
+---
+
+## ⚙️ System Workflow
+
+1. Collect passenger traffic data.
+2. Analyze congestion at each metro station.
+3. Predict future passenger density.
+4. Detect overcrowded stations.
+5. Allocate available staff dynamically.
+6. Display updated congestion status through the web interface.
+
+---
+
+## 🧠 AI & Predictive Analytics
+
+The system includes a predictive module that estimates future congestion levels based on historical passenger traffic.
+
+Predictions help operators:
+
+- Prepare for peak-hour rush
+- Allocate staff efficiently
+- Reduce waiting time
+- Improve passenger safety
+
+---
+
+## 🚉 Supported Metro Stations
+
+Example stations included:
+
+- Halasuru
+- Trinity
+- MG Road
+- Cubbon Park
+- Kempegowda
+- KSR City
+
+---
+
+## 📡 API Features
+
+The Flask backend provides APIs for:
+
+- Current station status
+- Passenger count
+- Congestion levels
+- Staff information
+- Resource allocation
+
+Example:
+
+```
+GET /api/status
+```
+
+Returns current congestion details for all stations.
+
+---
+
+## 📊 Expected Output
+
+The system displays:
+
+- Passenger density
+- Congestion level
+- Available staff
+- Assigned staff
+- Predicted congestion trend
+- Station status
+
+---
+
+## 💻 Installation
+
+Clone the repository
+
+```bash
+git clone https://github.com/<your-username>/Metro-Congestion-Control-System.git
+```
+
+Move into the project directory
+
+```bash
+cd Metro-Congestion-Control-System
+```
+
+Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+Run the Flask server
+
+```bash
+python backend.py
+```
+
+Open your browser and visit:
+
+```
+http://127.0.0.1:5000
+```
+
+---
+
+## 📦 Requirements
+
+```
+Flask
+Flask-CORS
+NumPy
+Matplotlib
+scikit-learn
+```
+
+Generate requirements automatically:
+
+```bash
+pip freeze > requirements.txt
+```
+
+---
+
+## 🎯 Applications
+
+- Smart City Solutions
+- Intelligent Transportation Systems
+- Metro Rail Management
+- Passenger Flow Prediction
+- Crowd Management
+- Public Safety
+
+---
+
+## 🔮 Future Enhancements
+
+- Deep Learning-based congestion prediction
+- CCTV crowd analysis using Computer Vision
+- IoT sensor integration
+- Live GPS train tracking
+- Passenger mobile application
+- Cloud deployment
+- Dashboard with real-time analytics
+- Emergency evacuation planning
+
+---
+
+## 👨‍💻 Author
+
+**Shubham Bhuyan**
+
+B.Tech – VIT Chennai
+
+GitHub: https://github.com/curiex7
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+---
+
+## ⭐ Support
+
+If you found this project helpful, consider giving it a ⭐ on GitHub!
