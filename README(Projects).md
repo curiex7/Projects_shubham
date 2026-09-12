@@ -458,13 +458,20 @@ Project-3
 
 # 📦 Last-Mile Delivery Tracker Platform
 
-A modern, full-stack delivery management and tracking platform built with **Next.js 15 (App Router)**, **Prisma ORM**, **SQLite**, and **Tailwind CSS**. The system automates dynamic delivery rate calculations based on volumetric and actual weights, intelligently assigns delivery agents based on geographical operational zones, maintains an immutable audit trail for order status transitions, and handles failed delivery reschedule workflows.
+[![Next.js](https://img.shields.io/badge/Next.js-15.0-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+[![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=for-the-badge&logo=prisma)](https://www.prisma.io/)
+[![SQLite](https://img.shields.io/badge/SQLite-Database-003B57?style=for-the-badge&logo=sqlite)](https://www.sqlite.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+
+A modern, production-ready full-stack delivery management and tracking ecosystem designed to streamline logistics operations. The platform automates dynamic shipping rate computation (volumetric vs. actual weight), executes zone-based auto-assignment for delivery agents, records immutable audit trails for every order transition, and features an automated failed delivery recovery workflow.
 
 ---
 
 ## 📌 Project Overview
 
-Last-mile logistics often encounter challenges such as inaccurate shipping fee calculations, manual assignment bottlenecks, lack of transparent package tracking, and unorganized failed delivery handling.
+Last-mile logistics often encounter challenges such as inaccurate shipping fee calculations, manual dispatch bottlenecks, lack of transparent package tracking, and unorganized failed delivery handling.
 
 This project delivers an end-to-end automated platform featuring:
 - **Dynamic Rate Engine**: Computes volumetric vs. actual billed weight, base charges, per-kg weight charges, and COD surcharges.
@@ -474,26 +481,142 @@ This project delivers an end-to-end automated platform featuring:
 
 ---
 
-## ✨ Features
+## ✨ Key Features
 
-- 🚚 **Dynamic Volumetric & Weight Rate Calculation**: Automatic calculation using $(L \times W \times H) / 5000$ formula.
-- 📍 **Zone & Route Management**: Granular rate card configuration for B2B and B2C shipment types between source and destination zones.
-- 🤖 **Automated Agent Dispatching**: Real-time assignment of delivery personnel based on pickup location.
-- 📜 **Immutable Order Audit History**: Tamper-proof tracking logs for all state transitions (`PENDING` $\rightarrow$ `ASSIGNED` $\rightarrow$ `PICKED_UP` $\rightarrow$ `IN_TRANSIT` $\rightarrow$ `DELIVERED` / `FAILED`).
-- 🔄 **Failed Delivery & Re-attempt Workflow**: Automated notification simulation and customer rescheduling mechanism.
-- 🔐 **Role-Based Authentication**: JWT cookie-based access control with `ADMIN`, `CUSTOMER`, and `AGENT` roles.
-- 📊 **Responsive Dashboard**: Clean UI designed with Tailwind CSS and Next.js App Router.
+- 📐 **Dynamic Volumetric & Weight Rate Engine**: Automatically computes dimensional weight vs. dead weight to determine billed weight, applying base rates, per-kg surcharges, and COD fees dynamically based on configured zone-to-zone rate cards.
+- 🗺️ **Operational Zone Management**: Divides operational territories into distinct zones with configurable B2B and B2C rate cards for intra-zone and inter-zone movements.
+- 🤖 **Automated Agent Dispatching**: Automatically assigns orders to active delivery personnel registered within the pickup zone to eliminate manual dispatch bottlenecks.
+- 📜 **Immutable Tracking Audit Trail**: Append-only event history capturing every order status transition (`PENDING` $\rightarrow$ `ASSIGNED` $\rightarrow$ `PICKED_UP` $\rightarrow$ `IN_TRANSIT` $\rightarrow$ `DELIVERED` / `FAILED`) with timestamps and actor IDs.
+- 🔄 **Failed Delivery & Rescheduling Workflow**: Automated workflow capturing failed delivery attempts with diagnostic reasons, triggering notifications and providing an instant customer reschedule interface.
+- 🔐 **Role-Based Portals & Auth**: Secure cookie-based JWT authentication with dedicated dashboards for **Customers**, **Delivery Agents**, and **Logistics Administrators**.
+- 📱 **Real-Time Public Tracking**: Clean, responsive tracking portal allowing customers to track package milestones by Order ID.
 
 ---
 
-## 🛠 Technologies Used
+## 🏗 Architecture & System Design
 
-- **Framework**: Next.js 15+ (App Router, Server Actions, Route Handlers)
-- **Language**: TypeScript
-- **Database & ORM**: SQLite + Prisma ORM
-- **Authentication**: JWT & HTTP-Only Cookies
-- **Styling**: Tailwind CSS, Lucide Icons
-- **Architecture**: Next.js Fullstack Serverless Architecture
+```mermaid
+flowchart TD
+    subgraph Client Layer
+        C[Customer Portal]
+        A[Agent Portal]
+        Adm[Admin Dashboard]
+        T[Public Tracking Page]
+    end
+
+    subgraph Application Layer [Next.js App Router]
+        API[Route Handlers / API Layer]
+        Auth[JWT Auth & RBAC Middleware]
+        RE[Rate Calculation Engine]
+        AE[Auto-Assignment Engine]
+        TM[Tracking & Audit Engine]
+    end
+
+    subgraph Data Layer
+        Prisma[Prisma ORM]
+        DB[(SQLite / PostgreSQL)]
+    end
+
+    C -->|Create Order & Reschedule| API
+    A -->|Update Status & Fail Order| API
+    Adm -->|Manage Zones & Rate Cards| API
+    T -->|Query Order Status| API
+
+    API --> Auth
+    API --> RE
+    API --> AE
+    API --> TM
+
+    RE --> Prisma
+    AE --> Prisma
+    TM --> Prisma
+    Prisma --> DB
+```
+
+---
+
+## 🧮 Core Logic & Mathematical Engines
+
+### 1. Volumetric Weight Calculation
+Logistics cargo requires vehicle volume allocation. The platform computes dimensional weight using the standard international freight divisor:
+
+$$\text{Volumetric Weight (kg)} = \frac{\text{Length (cm)} \times \text{Breadth (cm)} \times \text{Height (cm)}}{5000}$$
+
+### 2. Chargeable (Billed) Weight
+The billable weight is determined dynamically as the higher value between actual dead weight and volumetric weight:
+
+$$\text{Billed Weight} = \max(\text{Actual Weight (kg)}, \text{Volumetric Weight (kg)})$$
+
+### 3. Dynamic Tariff Quotation
+The rate engine queries the `RateCard` matching `(sourceZoneId, destinationZoneId, orderType)`:
+
+$$\text{Total Charge} = \text{Base Rate} + (\text{Billed Weight} \times \text{Weight Rate}) + \left( \mathbb{I}_{\text{COD}} \times \text{COD Surcharge} \right)$$
+
+*Where $\mathbb{I}_{\text{COD}} = 1$ if payment method is COD, else $0$.*
+
+---
+
+## 👥 User Roles & Permissions
+
+| Role | Permissions & Capabilities |
+|---|---|
+| **`CUSTOMER`** | Create new delivery orders, view real-time shipping quotations, track order milestones, view history, and reschedule failed deliveries. |
+| **`AGENT`** | View assigned pickup/delivery tasks within their registered zone, transition order statuses (`PICKED_UP`, `IN_TRANSIT`, `DELIVERED`, `FAILED`), and log failure notes. |
+| **`ADMIN`** | Full visibility over all platform orders, create and edit operational delivery zones, and configure dynamic rate cards for B2B/B2C routes. |
+
+---
+
+## 🗄 Database Schema & Data Model
+
+```
+┌─────────────────┐       ┌─────────────────┐
+│      User       │       │      Zone       │
+├─────────────────┤       ├─────────────────┤
+│ id              │◄──┐   │ id              │◄────────┐
+│ email           │   │   │ name            │         │
+│ passwordHash    │   │   │ areas (JSON)    │         │
+│ role            │   │   └─────────────────┘         │
+│ zoneId          ├───┼───────────────────────────────┤
+└─────────────────┘   │                               │
+                      │   ┌───────────────────────────┼──────────────┐
+                      │   │         RateCard          │              │
+                      │   ├───────────────────────────┼──────────────┤
+                      │   │ id                        │              │
+                      │   │ sourceZoneId ─────────────┘              │
+                      │   │ destinationZoneId ───────────────────────┘
+                      │   │ orderType (B2B / B2C)     │
+                      │   │ baseRate / weightRate     │
+                      │   │ codSurcharge              │
+                      │   └───────────────────────────┘
+                      │
+┌─────────────────────┴───────────────────────────────┐
+│                        Order                        │
+├─────────────────────────────────────────────────────┤
+│ id, trackingNumber, customerId, agentId             │
+│ pickupAddress, dropAddress, pickupZoneId, dropZoneId│
+│ length, breadth, height, actualWeight               │
+│ volumetricWeight, billedWeight                      │
+│ orderType (B2B/B2C), paymentType (PREPAID/COD)      │
+│ totalCharge, status (PENDING/ASSIGNED/DELIVERED/...)│
+└──────────────────────┬──────────────────────────────┘
+                       │ 1:N
+┌──────────────────────▼──────────────────────────────┐
+│                    OrderTracking                    │
+├─────────────────────────────────────────────────────┤
+│ id, orderId, status, actorId, message, timestamp    │
+└─────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🛠 Tech Stack
+
+- **Framework**: [Next.js 15+](https://nextjs.org/) (App Router, Server Actions, Route Handlers)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Database**: [SQLite](https://www.sqlite.org/) (configurable to PostgreSQL via Prisma)
+- **ORM**: [Prisma ORM 7](https://www.prisma.io/)
+- **Authentication**: JWT Cookies + [bcryptjs](https://github.com/dcodeIO/bcrypt.js)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) + [Lucide React Icons](https://lucide.dev/)
 
 ---
 
@@ -524,27 +647,24 @@ last-mile-tracker/
 
 ---
 
-## ⚙️ System Workflow & Architecture
+## 📡 API Reference
 
-1. **Order Creation**: Customer enters shipment dimensions ($L \times W \times H$), actual weight, pickup/drop zones, and payment method (Prepaid/COD).
-2. **Rate Computation**: The system evaluates:
-   - $\text{Volumetric Weight} = \frac{L \times W \times H}{5000}$
-   - $\text{Billed Weight} = \max(\text{Actual Weight}, \text{Volumetric Weight})$
-   - $\text{Total Charge} = \text{Base Rate} + (\text{Billed Weight} \times \text{Per-Kg Rate}) + \text{COD Surcharge (if COD)}$
-3. **Agent Assignment**: Queries active agents in the pickup zone and assigns the shipment.
-4. **Milestone Progression**: Agents update package status with live timestamped tracking records.
-5. **Exception Handling**: Failed deliveries trigger alert logs and enable customer rescheduling.
+### Authentication Endpoints
+- `POST /api/auth/register` — Register a new customer, agent, or administrator.
+- `POST /api/auth/login` — Authenticate credentials and issue HTTP-only JWT token.
+- `POST /api/auth/logout` — Invalidate user session cookie.
 
----
+### Delivery Zones & Rate Cards
+- `GET /api/zones` — List all active operational zones.
+- `POST /api/zones` — Create a new operational zone.
+- `GET /api/rate-cards` — Retrieve all configured rate cards.
+- `POST /api/rate-cards` — Define base and per-kg tariffs between source and destination zones.
 
-## 📡 API Endpoints
-
-- `POST /api/auth/register` - Register customer/agent/admin
-- `POST /api/auth/login` - Secure login & token generation
-- `GET /api/zones` & `POST /api/zones` - Manage delivery zones
-- `GET /api/rate-cards` & `POST /api/rate-cards` - Configure zone-to-zone tariffs
-- `GET /api/orders` & `POST /api/orders` - Place and filter shipments
-- `PATCH /api/orders/:id/status` - Update delivery lifecycle status
+### Orders & Tracking
+- `GET /api/orders` — List orders (supports filters: `customerId`, `agentId`, `status`).
+- `POST /api/orders` — Create order (runs volumetric calculator and auto-assignment).
+- `GET /api/orders/[id]` — Fetch detailed order summary and immutable tracking log.
+- `PATCH /api/orders/[id]/status` — Transition package lifecycle state and append audit event.
 
 ---
 
@@ -573,6 +693,28 @@ Visit `http://localhost:3000` to launch the application.
 
 ---
 
+## ⚙️ Environment Variables
+
+```env
+DATABASE_URL="file:./dev.db"
+JWT_SECRET="your-super-secure-jwt-secret-key"
+NODE_ENV="development"
+```
+
+---
+
+## 🚢 Deployment Guide
+
+### Vercel
+1. Push your repository to GitHub.
+2. Import the project into [Vercel](https://vercel.com).
+3. Set your `DATABASE_URL` and `JWT_SECRET` in Vercel Environment Variables.
+4. If using PostgreSQL in production:
+   - Update `provider = "postgresql"` in `prisma/schema.prisma`.
+   - Set `DATABASE_URL="postgres://user:password@host:port/dbname"`.
+
+---
+
 ## 👨‍💻 Author
 
 **Shubham Bhuyan**
@@ -592,4 +734,5 @@ This project is licensed under the MIT License.
 ## ⭐ Support
 
 If you found this project helpful, consider giving it a ⭐ on GitHub!
+
 
