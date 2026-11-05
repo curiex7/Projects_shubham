@@ -1,0 +1,206 @@
+:root {
+    font-family: 'IBM Plex Sans', sans-serif;
+}
+
+/* MODIFIED: Moved background color here */
+html {
+    background-color: #161616;
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    height: 100vh;
+    font-family: 'IBM Plex Sans', sans-serif;
+    /* REMOVED: background-color was here */
+    color: #f4f4f4;
+}
+
+/* --- Decorative Decals --- */
+body::before, body::after {
+    content: '';
+    position: fixed;
+    width: 300px;
+    height: 900px;
+    background-image: repeating-linear-gradient(-45deg, 
+        rgba(15, 98, 254, 0), 
+        rgba(15, 98, 254, 0) 10px, 
+        transparent 10px, 
+        transparent 20px
+    );
+    z-index: -1;
+    opacity: 0.5;
+}
+body::before {
+    top: -100px;
+    left: -100px;
+}
+body::after {
+    bottom: -150px;
+    right: -150px;
+    transform: rotate(90deg);
+}
+
+/* --- Top Bar Styles --- */
+#top-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #262626;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 32px;
+    height: 70px;
+    box-sizing: border-box;
+    border-bottom: 1px solid #393939;
+    z-index: 100;
+}
+#top-bar-title {
+    color: #c6c6c6;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* --- New Progress Indicator --- */
+#progress-indicator {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+}
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #8d8d8d;
+    position: relative;
+    width: 90px;
+    transition: color 0.3s ease;
+}
+.step-circle {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #8d8d8d;
+    background-color: transparent;
+    margin-bottom: 8px;
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+.step-label {
+    font-size: 12px;
+}
+.step::after { /* Connecting line */
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 100%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 2px;
+    background-color: #8d8d8d;
+}
+.step:last-child::after {
+    display: none;
+}
+.step.active {
+    color: #0f62fe;
+}
+.step.active .step-circle {
+    border-color: #0f62fe;
+    background-color: #0f62fe;
+}
+
+/* --- Page and Text Styles --- */
+#page-container {
+    position: relative;
+    max-width: 70rem;
+    height: 100%;
+    margin: 0 auto;
+    padding: 102px 0 0 0;
+    box-sizing: border-box;
+}
+.title {
+    color: #0f62fe;
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+.main-header {
+    color: #f4f4f4;
+    font-size: 56px;
+    font-weight: 300;
+    margin-bottom: 10px;
+}
+.sub-text {
+    color: #c6c6c6;
+    font-size: 22px;
+    margin-bottom: 40px;
+}
+.current-location, .destination-name {
+    color: #0f62fe;
+    font-size: 24px;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+.page { display: none; }
+.page.active { display: block; }
+
+/* --- Standardized Button Styles --- */
+.nav-button, .back-button, .yes-no-button {
+    padding: 15px 30px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    min-width: 150px;
+    text-align: center;
+    box-sizing: border-box;
+}
+.nav-button {
+    position: absolute;
+    bottom: 50px;
+    right: 0;
+    background-color: #0f62fe;
+    color: white;
+}
+#confirm-btn:disabled, #bus-confirm-btn:disabled {
+    background-color: #404040;
+    cursor: not-allowed;
+    color: #8d8d8d;
+}
+.back-button {
+    background-color: #6f6f6f;
+    left: 0;
+    right: auto;
+}
+.yes-no-buttons {
+    position: absolute;
+    bottom: 50px;
+    right: 0;
+    display: flex;
+    gap: 20px;
+}
+.no-button {
+    background-color: #6f6f6f;
+    color: white;
+}
+.yes-button {
+    background-color: #0f62fe;
+    color: white;
+}
+
+/* --- List and Input Styles --- */
+.station-list { width: 200px; background: #262626; border: 1px solid #393939; border-radius: 4px; overflow: hidden; }
+.station-option { padding: 10px; border-bottom: 1px solid #393939; cursor: pointer; background-color: #262626; color: #f4f4f4; }
+.station-option:last-child { border-bottom: none; }
+.station-option:hover { background-color: #393939; }
+.station-option.selected { background-color: #404040; }
+#selected-station { margin-top: 20px; color: #c6c6c6; font-size: 16px; }
+.selected-label { display: inline-block; margin-right: 10px; }
+.large-input-box { display: block; width: 100%; max-width: 400px; padding: 20px; font-size: 24px; border: 1px solid #393939; background-color: #262626; color: #f4f4f4; border-radius: 4px; box-sizing: border-box; margin-bottom: 20px; font-family: 'IBM Plex Sans', sans-serif; font-weight: 300; }
+
+/* --- Ticket Details Styles --- */
+.ticket-details { margin-top: 40px; font-size: 18px; }
+.detail-row { display: flex; margin-bottom: 30px; }
+.detail-label { color: #0f62fe; font-weight: 500; width: 250px; flex-shrink: 0; }
+.detail-value { color: #c6c6c6; font-weight: 400; }

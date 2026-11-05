@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCCS Admin Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin_style.css">
+</head>
+<body>
+
+    <div id="login-container">
+        <div id="login-welcome">
+            <h1>Welcome to the <span>Metro Congestion Control System</span></h1>
+        </div>
+        <div id="login-form-container">
+            <div id="login-form">
+                <h2>Admin Login</h2>
+                <p>Please enter your credentials.</p>
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" value="admin1">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" value="admin1">
+                </div>
+                <button id="login-btn">Login</button>
+                <p id="login-message"></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="dashboard">
+        <div class="top-bar">
+            <div class="top-bar-title">MCCS Dashboard</div>
+            <div class="top-bar-nav">
+                <a href="#" onclick="showPage('home')" class="active">Home</a>
+                <a href="#" onclick="showPage('line-status')">Line Status</a>
+                <a href="#" onclick="showPage('bus-details')">Bus Details</a>
+                <a href="#" onclick="showPage('additional-details')">Additional Details</a>
+                <a href="#" onclick="showPage('logs')">Logs</a>
+                <a href="#" onclick="showPage('settings')">Settings</a>
+                <button id="logout-btn">Logout</button>
+            </div>
+        </div>
+
+        <div class="page-container">
+            <div id="home-page" class="page-content active">
+                <h2>Dashboard Overview</h2>
+                <div class="home-grid">
+                    <div class="congestion-graph-container">
+                        <h3>Predicted Congestion Levels</h3>
+                        <svg id="congestion-graph" width="100%" height="400" viewbox="0 0 800 400"></svg>
+                        <div id="graph-legend" class="graph-legend"></div>
+                    </div>
+                    <div class="notifications-container">
+                        <h3>Important Notifications</h3>
+                        <div id="notifications-list" class="notifications-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="line-status-page" class="page-content">
+                <h2>Line Status</h2>
+                <div class="metro-map-container"> <div id="metro-line" class="metro-line"></div> </div>
+                <div class="data-tables-container">
+                    <div> <h3>Station Details</h3> <table class="data-table"> <thead> <tr> <th>Station</th> <th>Passengers</th> <th>Buses</th> <th>Wheelchairs</th> </tr> </thead> <tbody id="station-table-body"></tbody> </table> </div>
+                    <div> <h3>Train Details</h3> <table class="data-table"> <thead> <tr> <th>Train ID</th> <th>Location</th> <th>Coaches</th> <th>Direction</th> </tr> </thead> <tbody id="train-table-body"></tbody> </table> </div>
+                </div>
+            </div>
+
+            <div id="bus-details-page" class="page-content">
+                <h2>Bus Details</h2>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Bus ID</th>
+                            <th>On Metro Duty</th>
+                            <th>Passengers / Capacity</th>
+                            <th>Wheelchair Support</th>
+                            <th>Type</th>
+                            <th>Location</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bus-table-body"></tbody>
+                </table>
+            </div>
+
+            <div id="additional-details-page" class="page-content">
+                <h2>Additional Details</h2>
+                <div class="data-tables-container">
+                    <div>
+                        <h3>Wheelchair Status</h3>
+                        <table class="data-table">
+                            <thead id="wheelchair-table-head">
+                                <tr>
+                                    <th data-sort-key="id">ID</th>
+                                    <th data-sort-key="station">Station</th>
+                                    <th data-sort-key="isAvailable">Availability</th>
+                                    <th data-sort-key="staffId">Allotted Staff</th>
+                                </tr>
+                            </thead>
+                            <tbody id="wheelchair-table-body"></tbody>
+                        </table>
+                    </div>
+                    <div>
+                        <h3>Staff Details</h3>
+                        <table class="data-table">
+                            <thead id="staff-table-head">
+                                <tr>
+                                    <th data-sort-key="name">Name (ID)</th>
+                                    <th data-sort-key="station">Station</th>
+                                    <th data-sort-key="duty">Duty</th>
+                                </tr>
+                            </thead>
+                            <tbody id="staff-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="logs-page" class="page-content">
+                <h2>Ticket Logs</h2>
+                <div id="log-list"></div>
+            </div>
+
+            <div id="settings-page" class="page-content">
+                <h2>System Settings</h2>
+                <div class="settings-grid">
+                    <div class="setting-group" id="station-capacity-settings">
+                        </div>
+                    <div class="setting-group">
+                        <h4>Core Logic</h4>
+                        <div class="setting-item"> <label for="reallocation-toggle">Reallocation System</label> <label class="toggle-switch"><input type="checkbox" id="reallocation-toggle" checked><span class="slider"></span></label> </div>
+                        <div class="setting-item"> <label for="emergency-threshold">Emergency Time Threshold (min)</label> <input type="number" id="emergency-threshold" value="30"> </div>
+                        <div class="setting-item"> <label for="bus-dispatch-delay">Bus Dispatch Delay (min)</label> <input type="number" id="bus-dispatch-delay" value="5"> </div>
+                    </div>
+                    <div class="setting-group">
+                        <h4>Dashboard</h4>
+                        <div class="setting-item"> <label for="refresh-interval">Data Refresh Interval (s)</label> <input type="number" id="refresh-interval" value="3"> </div>
+                        <div class="setting-item"> <label for="alert-sounds">Enable Alert Sounds</label> <label class="toggle-switch"><input type="checkbox" id="alert-sounds"><span class="slider"></span></label> </div>
+                        <div class="setting-item"> <label for="theme-select">Theme</label> <span>Dark</span> </div>
+                    </div>
+                     <div class="setting-group">
+                        <h4>System & Data</h4>
+                        <div class="setting-item"> <label for="api-endpoint">API Endpoint URL</label> <input type="text" id="api-endpoint" value="http://127.0.0.1:5000"> </div>
+                         <div class="setting-item"> <label for="log-retention">Log Retention (days)</label> <input type="number" id="log-retention" value="90"> </div>
+                         <div class="setting-item"> <label for="notification-toggle">Enable Critical Notifications</label> <label class="toggle-switch"><input type="checkbox" id="notification-toggle" checked><span class="slider"></span></label> </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let systemState = {};
+        let refreshInterval;
+        let wheelchairSort = { key: 'id', direction: 'asc' };
+        let staffSort = { key: 'id', direction: 'asc' };
+
+        // --- Render Functions ---
+        function renderAll() {
+            if (!systemState.stations) return;
+            renderMap();
+            renderTables();
+            renderAdditionalDetailsTables();
+            renderLogs();
+            renderBusDetailsTable();
+            renderNotifications();
+        }
+
+        function renderCongestionGraph() {
+            const svg = document.getElementById('congestion-graph');
+            const legend = document.getElementById('graph-legend');
+            if (!svg || !legend) return;
+            svg.innerHTML = '';
+            legend.innerHTML = '';
+            const colors = ['#0f62fe', '#ff7eb6', '#42be65', '#a56eff', '#007d79', '#fa4d56'];
+            const paths = ["M 40,350 C 150,50 350,50 500,200 S 650,350 780,150", "M 40,150 C 200,350 400,300 550,100 S 700,50 780,250", "M 40,250 C 180,200 300,350 450,300 S 600,100 780,120", "M 40,100 C 150,300 350,100 500,250 S 650,50 780,200", "M 40,300 C 200,100 400,200 550,300 S 700,150 780,350", "M 40,200 C 180,350 300,100 450,150 S 600,350 780,100"];
+            
+            svg.innerHTML += `<line x1="40" y1="370" x2="780" y2="370" stroke="#393939" /><line x1="40" y1="20" x2="40" y2="370" stroke="#393939" />`;
+
+            Object.keys(systemState.stations).forEach((stationName, i) => {
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', paths[i % paths.length]);
+                path.setAttribute('fill', 'none');
+                path.setAttribute('stroke', colors[i % colors.length]);
+                path.setAttribute('stroke-width', '3');
+                path.classList.add('graph-line');
+                svg.appendChild(path);
+                legend.innerHTML += `<div class="legend-item"><span class="legend-color" style="background-color:${colors[i % colors.length]}"></span>${stationName}</div>`;
+            });
+        }
+
+        function renderNotifications() {
+            const list = document.getElementById('notifications-list');
+            if (!list) return;
+            list.innerHTML = '';
+            systemState.notifications.forEach(n => {
+                const icon = n.type === 'critical' ? '🔴' : (n.type === 'warning' ? '🟡' : '🔵');
+                list.innerHTML += `<div class="notification-item ${n.type}"><div class="notification-icon">${icon}</div><div class="notification-content"><p>${n.message}</p><span>${n.time}</span></div></div>`;
+            });
+        }
+
+        function renderBusDetailsTable() {
+            const tbody = document.getElementById('bus-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            systemState.buses.forEach(b => {
+                tbody.innerHTML += `<tr><td>${b.id}</td><td>${b.onMetroDuty ? 'Yes' : 'No'}</td><td>${b.passengers} / ${b.capacity}</td><td>${b.wheelchair ? 'Yes' : 'No'}</td><td>${b.type}</td><td>${b.location}</td></tr>`;
+            });
+        }
+
+        function renderSettings() {
+            const container = document.getElementById('station-capacity-settings');
+            if (!container) return;
+            container.innerHTML = '<h4>Station Capacity</h4>';
+            for (const [name, data] of Object.entries(systemState.stations)) {
+                container.innerHTML += `<div class="setting-item"><label for="capacity_${name}">${name} Capacity</label><input type="number" id="capacity_${name}" value="${data.capacity}"></div>`;
+            }
+            document.getElementById('reallocation-toggle').checked = systemState.settings.reallocation_on;
+            document.getElementById('emergency-threshold').value = systemState.settings.emergency_threshold;
+            document.getElementById('api-endpoint').value = systemState.settings.api_endpoint;
+        }
+
+        function renderLogs() {
+            const logList = document.getElementById('log-list');
+            if (!logList) return;
+            logList.innerHTML = '';
+            systemState.ticket_logs.forEach((log, index) => {
+                const logEntry = document.createElement('div');
+                logEntry.className = 'log-entry';
+                let emergencyHtml = `<strong>Emergency:</strong> No`;
+                if (log.emergency && log.emergency.isEmergency) {
+                    emergencyHtml = `<strong>Emergency:</strong> Yes (Time: ${log.emergency.time} mins)`;
+                }
+                const busHtml = log.bus ? `<strong>Bus:</strong> ${log.bus} from ${log.allotted_station}` : '<strong>Bus:</strong> N/A';
+                
+                // This line is the fix for the "undefined" bug
+                const wheelchairHtml = log.wheelchair ? `<strong>Wheelchair:</strong> ${log.wheelchair.wheelchair_id} (Coach ${log.wheelchair.coach})` : '<strong>Wheelchair:</strong> N/A';
+                
+                logEntry.innerHTML = `<div class="log-header">Ticket #${systemState.ticket_logs.length - index}</div><div class="log-details"><div class="log-detail-item"><strong>Original:</strong> ${log.original_station}</div><div class="log-detail-item"><strong>Allotted:</strong> ${log.allotted_station}</div><div class="log-detail-item">${emergencyHtml}</div><div class="log-detail-item">${busHtml}</div><div class="log-detail-item">${wheelchairHtml}</div></div>`;
+                logList.appendChild(logEntry);
+            });
+        }
+
+        function renderMap() {
+            const metroLine = document.getElementById('metro-line');
+            if (!metroLine) return;
+            const stationData = systemState.stations;
+            const stationLayout = [ { name: 'Halasuru', left: '10%' }, { name: 'Trinity', left: '25%' }, { name: 'MG Road', left: '40%' }, { name: 'Cubbon Park', left: '55%' }, { name: 'Kempegowda', left: '70%' }, { name: 'KSR City', left: '85%' }];
+            
+            metroLine.innerHTML = '';
+            stationLayout.forEach(layoutInfo => {
+                const station = stationData[layoutInfo.name];
+                if (!station) return;
+                
+                const stationMarker = document.createElement('div');
+                stationMarker.className = 'station-marker';
+                stationMarker.style.left = layoutInfo.left;
+                const stationCircle = document.createElement('div');
+                stationCircle.className = 'station-circle';
+                const stationLabel = document.createElement('div');
+                stationLabel.className = 'station-label';
+                stationLabel.textContent = layoutInfo.name;
+
+                if (station.passengers > station.capacity * 0.9) { stationCircle.classList.add('status-red'); } 
+                else if (station.passengers > 0) { stationCircle.classList.add('status-yellow'); }
+                else { stationCircle.classList.add('status-green'); }
+                
+                stationMarker.appendChild(stationCircle);
+                stationMarker.appendChild(stationLabel);
+                metroLine.appendChild(stationMarker);
+            });
+        }
+
+        function renderTables() {
+            const stationTBody = document.getElementById('station-table-body');
+            const trainTBody = document.getElementById('train-table-body');
+            if (!stationTBody || !trainTBody) return;
+            stationTBody.innerHTML = '';
+            trainTBody.innerHTML = '';
+            for (const [name, s] of Object.entries(systemState.stations)) {
+                let colorClass = s.passengers > s.capacity * 0.9 ? 'status-red' : (s.passengers > 0 ? 'status-yellow' : 'status-green');
+                let busText = s.buses.length > 0 ? s.buses.join(', ') : 'None';
+                stationTBody.innerHTML += `<tr><td><span class="status-indicator ${colorClass}"></span>${name}</td><td>${s.passengers}</td><td>${busText}</td><td>${s.wheelchairs_present}</td></tr>`;
+            };
+            systemState.trains.forEach(t => {
+                trainTBody.innerHTML += `<tr><td>${t.id}</td><td>${t.location}</td><td>${t.coaches}</td><td>${t.direction.charAt(0).toUpperCase() + t.direction.slice(1)}</td></tr>`;
+            });
+        }
+
+        function renderAdditionalDetailsTables() {
+            const wheelchairTBody = document.getElementById('wheelchair-table-body');
+            const staffTBody = document.getElementById('staff-table-body');
+            if (!wheelchairTBody || !staffTBody) return;
+
+            sortData(systemState.wheelchairs, wheelchairSort.key, wheelchairSort.direction);
+            sortData(systemState.staff, staffSort.key, staffSort.direction);
+            
+            wheelchairTBody.innerHTML = '';
+            systemState.wheelchairs.forEach(w => {
+                const availabilityClass = w.isAvailable ? 'availability-vacant' : 'availability-occupied';
+                const availabilityText = w.isAvailable ? 'Vacant' : 'Occupied';
+                const staffMember = systemState.staff.find(s => s.id === w.staffId);
+                const staffName = staffMember ? staffMember.name : 'N/A';
+                wheelchairTBody.innerHTML += `<tr><td>${w.id}</td><td>${w.station}</td><td><span class="${availabilityClass}">${availabilityText}</span></td><td>${staffName}</td></tr>`;
+            });
+
+            staffTBody.innerHTML = '';
+            systemState.staff.forEach(s => {
+                staffTBody.innerHTML += `<tr><td>${s.name} (${s.id})</td><td>${s.station}</td><td>${s.duty}</td></tr>`;
+            });
+            
+            updateSortIndicators();
+        }
+        
+        function sortData(dataArray, key, direction) {
+            dataArray.sort((a, b) => {
+                const valA = a[key];
+                const valB = b[key];
+                let comparison = 0;
+                if (valA > valB) { comparison = 1; } 
+                else if (valA < valB) { comparison = -1; }
+                return direction === 'desc' ? (comparison * -1) : comparison;
+            });
+        }
+        
+        function updateSortIndicators() {
+            document.querySelectorAll('#additional-details-page th').forEach(th => {
+                th.classList.remove('sort-asc', 'sort-desc');
+            });
+            const wheelchairTh = document.querySelector(`#wheelchair-table-head [data-sort-key="${wheelchairSort.key}"]`);
+            if (wheelchairTh) wheelchairTh.classList.add(`sort-${wheelchairSort.direction}`);
+            
+            const staffTh = document.querySelector(`#staff-table-head [data-sort-key="${staffSort.key}"]`);
+            if (staffTh) staffTh.classList.add(`sort-${staffSort.direction}`);
+        }
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId + '-page').classList.add('active');
+            document.querySelectorAll('.top-bar-nav a').forEach(a => a.classList.remove('active'));
+            document.querySelector(`.top-bar-nav a[onclick="showPage('${pageId}')"]`).classList.add('active');
+        }
+
+        // --- API Communication ---
+        async function fetchSystemState() {
+            try {
+                const response = await fetch('http://127.0.0.1:5000/admin/status');
+                systemState = await response.json();
+                renderAll();
+            } catch (error) {
+                console.error("Failed to fetch system state:", error);
+                if(refreshInterval) clearInterval(refreshInterval);
+            }
+        }
+        
+        async function updateSettings() {
+            const settingsPayload = {};
+            document.querySelectorAll('#settings-page input').forEach(input => {
+                const id = input.id;
+                if (input.type === 'checkbox') {
+                    settingsPayload[id.replace('-toggle', '_on')] = input.checked;
+                } else {
+                    settingsPayload[id] = input.value;
+                }
+            });
+            
+            await fetch('http://127.0.0.1:5000/admin/update_settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(settingsPayload)
+            });
+        }
+
+        // --- Initialization and Event Listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginContainer = document.getElementById('login-container');
+            const dashboard = document.getElementById('dashboard');
+            const loginBtn = document.getElementById('login-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+
+            async function handleLogin() {
+                if (document.getElementById('username').value === 'admin1' && document.getElementById('password').value === 'admin1') {
+                    loginContainer.style.display = 'none';
+                    dashboard.style.display = 'block';
+                    
+                    await fetchSystemState();
+                    renderSettings();
+                    renderCongestionGraph();
+                    
+                    document.querySelector('.settings-grid').addEventListener('change', updateSettings);
+                    
+                    refreshInterval = setInterval(fetchSystemState, 3000);
+                } else {
+                    document.getElementById('login-message').textContent = 'Invalid username or password.';
+                }
+            }
+
+            function handleLogout() {
+                dashboard.style.display = 'none';
+                loginContainer.style.display = 'flex';
+                if(refreshInterval) clearInterval(refreshInterval);
+            }
+
+            loginBtn.addEventListener('click', handleLogin);
+            logoutBtn.addEventListener('click', handleLogout);
+
+            document.getElementById('wheelchair-table-head').addEventListener('click', (e) => {
+                const key = e.target.dataset.sortKey;
+                if (key) {
+                    if (wheelchairSort.key === key) {
+                        wheelchairSort.direction = wheelchairSort.direction === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        wheelchairSort.key = key;
+                        wheelchairSort.direction = 'asc';
+                    }
+                    renderAdditionalDetailsTables();
+                }
+            });
+            
+            document.getElementById('staff-table-head').addEventListener('click', (e) => {
+                const key = e.target.dataset.sortKey;
+                if (key) {
+                    if (staffSort.key === key) {
+                        staffSort.direction = staffSort.direction === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        staffSort.key = key;
+                        staffSort.direction = 'asc';
+                    }
+                    renderAdditionalDetailsTables();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

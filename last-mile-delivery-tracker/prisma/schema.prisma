@@ -1,0 +1,103 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   // "ADMIN", "CUSTOMER", "AGENT"
+  zoneId    String?  // For Agents, the zone they are assigned to
+  
+  // Relations
+  customerOrders Order[] @relation("CustomerOrders")
+  agentOrders    Order[] @relation("AgentOrders")
+  trackings      OrderTracking[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Zone {
+  id        String   @id @default(uuid())
+  name      String
+  areas     String   // Stored as JSON string or comma-separated for simplicity in SQLite
+
+  // Relations
+  sourceRates      RateCard[] @relation("SourceZone")
+  destinationRates RateCard[] @relation("DestinationZone")
+  pickupOrders     Order[]    @relation("PickupZone")
+  dropOrders       Order[]    @relation("DropZone")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RateCard {
+  id                String   @id @default(uuid())
+  orderType         String   // "B2B", "B2C"
+  sourceZoneId      String
+  destinationZoneId String
+  baseRate          Float
+  weightRate        Float    // per kg beyond base weight (or per kg total)
+  codSurcharge      Float
+
+  // Relations
+  sourceZone      Zone @relation("SourceZone", fields: [sourceZoneId], references: [id])
+  destinationZone Zone @relation("DestinationZone", fields: [destinationZoneId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id               String   @id @default(uuid())
+  customerId       String
+  agentId          String?
+  pickupAddress    String
+  dropAddress      String
+  pickupZoneId     String
+  dropZoneId       String
+  dimensions       String   // "L,B,H"
+  actualWeight     Float
+  volumetricWeight Float
+  billedWeight     Float
+  orderType        String   // "B2B", "B2C"
+  paymentType      String   // "PREPAID", "COD"
+  totalCharge      Float
+  status           String   // "PENDING", "ASSIGNED", "PICKED_UP", "IN_TRANSIT", "DELIVERED", "FAILED"
+
+  // Relations
+  customer   User    @relation("CustomerOrders", fields: [customerId], references: [id])
+  agent      User?   @relation("AgentOrders", fields: [agentId], references: [id])
+  pickupZone Zone    @relation("PickupZone", fields: [pickupZoneId], references: [id])
+  dropZone   Zone    @relation("DropZone", fields: [dropZoneId], references: [id])
+  trackings  OrderTracking[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OrderTracking {
+  id        String   @id @default(uuid())
+  orderId   String
+  status    String
+  actorId   String
+  message   String?
+  timestamp DateTime @default(now())
+
+  // Relations
+  order Order @relation(fields: [orderId], references: [id])
+  actor User  @relation(fields: [actorId], references: [id])
+}

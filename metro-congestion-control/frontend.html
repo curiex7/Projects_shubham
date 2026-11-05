@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Metro Congestion Control System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="top-bar">
+        <div id="top-bar-title">Metro Congestion Control System</div>
+        <div id="progress-indicator">
+            <div class="step" id="step-station">
+                <div class="step-circle"></div>
+                <div class="step-label">Station</div>
+            </div>
+            <div class="step" id="step-emergency">
+                <div class="step-circle"></div>
+                <div class="step-label">Emergency</div>
+            </div>
+            <div class="step" id="step-wheelchair">
+                <div class="step-circle"></div>
+                <div class="step-label">Wheelchair</div>
+            </div>
+            <div class="step" id="step-confirmation">
+                <div class="step-circle"></div>
+                <div class="step-label">Confirmation</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-container">
+        <div id="page1" class="page active"> <div class="title">The Metro Congestion Control System</div> <div class="main-header">Welcome</div> <div class="sub-text">Please press Proceed to continue.</div> <button class="nav-button" onclick="navigateTo('page2')">Proceed &rarr;</button> </div>
+        <div id="page2" class="page"> <div class="current-location">You are currently at Indiranagar.</div> <div class="sub-text">Please select your destination station and press Confirm.</div> <div class="station-list" id="station-list"> <div class="station-option" onclick="selectStation('Halasuru', this)">Halasuru</div> <div class="station-option" onclick="selectStation('Trinity', this)">Trinity</div> <div class="station-option" onclick="selectStation('MG Road', this)">MG Road</div> <div class="station-option" onclick="selectStation('Cubbon Park', this)">Cubbon Park</div> <div class="station-option" onclick="selectStation('Kempegowda', this)">Kempegowda</div> <div class="station-option" onclick="selectStation('KSR City', this)">KSR City</div> <div class="station-option" onclick="selectStation('Magadi Road', this)">Magadi Road</div> </div> <div id="selected-station"> <span class="selected-label">Currently selected:</span> None </div> <button id="confirm-btn" class="nav-button" onclick="confirmStation()" disabled>Confirm &rarr;</button> </div>
+        <div id="page3" class="page"> <div class="title">The station you selected is currently overcrowded.</div> <div class="sub-text">Do you have an <strong>emergency</strong>?</div> <div class="yes-no-buttons"> <button class="yes-no-button no-button">No</button> <button class="yes-no-button yes-button">Yes</button> </div> </div>
+        <div id="emergency-time-page" class="page"> <div class="sub-text">Enter the amount of time available in minutes:</div> <input type="number" id="time-input" class="large-input-box" placeholder="e.g., 45"> <button class="nav-button" onclick="handleEmergencyTime()">Proceed &rarr;</button> </div>
+        <div id="page4" class="page"> <div class="title">You may proceed to <span class="destination-name" id="proceed-destination">Station</span>.</div> <div class="sub-text">Do you require <strong>wheelchair assistance</strong>?</div> <div class="yes-no-buttons"> <button class="yes-no-button no-button">No</button> <button class="yes-no-button yes-button">Yes</button> </div> </div>
+        <div id="page5" class="page"> <div class="sub-text">You have been reallocated to:</div> <div class="main-header">Cubbon Park</div> <div class="sub-text">Do you require <strong>wheelchair assistance</strong>?</div> <div class="yes-no-buttons"> <button class="yes-no-button no-button">No</button> <button class="yes-no-button yes-button">Yes</button> </div> </div>
+        <div id="page6" class="page"> <div class="title">Buses from <span id="bus-from">Cubbon Park</span> to <span class="destination-name" id="bus-to">Destination</span>:</div> <div class="sub-text">Please select a bus and press Confirm.</div> <div class="station-list" id="bus-list"> <div class="station-option" onclick="selectBus('500CA', this)">500CA</div> <div class="station-option" onclick="selectBus('500C', this)">500C</div> <div class="station-option" onclick="selectBus('200E', this)">200E</div> <div class="station-option" onclick="selectBus('370M', this)">370M</div> </div> <div style="margin-top: 20px; color: #c6c6c6; font-size: 16px;"> <span class="selected-label">Currently selected:</span> <span id="selected-bus">None</span> </div> <button id="bus-confirm-btn" class="nav-button" onclick="showTicketPage()" disabled>Confirm &rarr;</button> </div>
+        <div id="page7" class="page"> <div class="title">Ticket details</div> <div class="sub-text">Please recheck your selected options and press Confirm.</div> <div class="ticket-details"> <div class="detail-row"> <div class="detail-label">Booked station</div> <div class="detail-value" id="booked-station">-</div> </div> <div class="detail-row" id="bus-row" style="display: none;"> <div class="detail-label">Bus selected</div> <div class="detail-value" id="bus-selected">-</div> </div> <div class="detail-row"> <div class="detail-label">Allotted station</div> <div class="detail-value" id="allotted-station">-</div> </div> <div class="detail-row"> <div class="detail-label">Wheelchair Assistance</div> <div class="detail-value" id="wheelchair-allotted">-</div> </div> </div> <button class="nav-button" onclick="navigateTo('page8')">Confirm &rarr;</button> </div>
+        <div id="page8" class="page"> <div class="main-header">Thank you</div> <div class="sub-text">Collect your ticket and press Finish.</div> <button class="nav-button">Finish</button> </div>
+    </div>
+
+    <script>
+        let currentPage = 'page1';
+        let pageHistory = [];
+        let selectedOption = null;
+        let selectedDestination = null;
+        let apiResponseData = null;
+        let selectedBus = null;
+
+        function updateProgressBar(pageKey) {
+            document.querySelectorAll('.step').forEach(step => step.classList.remove('active'));
+            const pageToStepMap = {
+                'page2': 'step-station', 'page3': 'step-station',
+                'emergency-time-page': 'step-emergency', 'page4': 'step-wheelchair',
+                'page5': 'step-wheelchair', 'page6': 'step-confirmation',
+                'page7': 'step-confirmation', 'page8': 'step-confirmation',
+            };
+            const activeStepId = pageToStepMap[pageKey];
+            if (activeStepId) {
+                document.getElementById(activeStepId).classList.add('active');
+            }
+        }
+        
+        function confirmStation() {
+            fetch('http://127.0.0.1:5000/check_station', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ destination_station: selectedDestination }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.is_full) {
+                    navigateTo('page3');
+                } else {
+                    apiResponseData = {
+                        decision: 'PROCEED', allotted_station: selectedDestination,
+                        original_destination: selectedDestination, wasEmergency: false
+                    };
+                    document.getElementById('proceed-destination').textContent = selectedDestination;
+                    navigateTo('page4');
+                }
+            }).catch(error => console.error('Error checking station:', error));
+        }
+
+        function makeTravelRequest(isEmergency) {
+            fetch('http://127.0.0.1:5000/request_travel', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    destination_station: selectedDestination, is_emergency: isEmergency
+                }),
+            })
+            .then(response => response.json()).then(data => {
+                apiResponseData = data;
+                apiResponseData.wasEmergency = isEmergency; // Store emergency status
+                switch (data.decision) {
+                    case 'PROCEED':
+                        document.getElementById('proceed-destination').textContent = data.allotted_station;
+                        navigateTo('page4');
+                        break;
+                    case 'REALLOCATE':
+                        document.querySelector('#page5 .main-header').textContent = data.allotted_station;
+                        navigateTo('page5');
+                        break;
+                }
+            }).catch(error => console.error('Error requesting travel:', error));
+        }
+
+        function finalizeBooking() {
+            if (apiResponseData && apiResponseData.allotted_station) {
+                const logData = {
+                    original_station: apiResponseData.original_destination,
+                    allotted_station: apiResponseData.allotted_station,
+                    emergency: {
+                        isEmergency: apiResponseData.wasEmergency || false,
+                        time: document.getElementById('time-input').value || null
+                    },
+                    bus: selectedBus,
+                    wheelchair: apiResponseData.wheelchairInfo || null
+                };
+                fetch('http://127.0.0.1:5000/confirm_travel', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(logData),
+                })
+                .then(response => response.json()).then(data => {
+                    console.log('Booking confirmed:', data.message);
+                    navigateTo('page1');
+                }).catch(error => console.error('Error finalizing booking:', error));
+            } else { navigateTo('page1'); }
+        }
+
+        function handleWheelchairRequest(shouldProceedToBuses) {
+            fetch('http://127.0.0.1:5000/request_wheelchair', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ station: apiResponseData.allotted_station })
+            })
+            .then(response => response.json())
+            .then(wheelchairData => {
+                if (wheelchairData.error) {
+                    alert(wheelchairData.error);
+                    return;
+                }
+                apiResponseData.needsWheelchair = true;
+                apiResponseData.wheelchairInfo = wheelchairData;
+                
+                if (shouldProceedToBuses) {
+                    proceedToBuses();
+                } else {
+                    showTicketPage();
+                }
+            })
+            .catch(error => console.error('Error requesting wheelchair:', error));
+        }
+        
+        function handleNoWheelchair(shouldProceedToBuses) {
+            if (apiResponseData) apiResponseData.needsWheelchair = false;
+            if (shouldProceedToBuses) {
+                proceedToBuses();
+            } else {
+                showTicketPage();
+            }
+        }
+        
+        function handleEmergencyTime() {
+            const availableTime = parseInt(document.getElementById('time-input').value, 10);
+            const TIME_THRESHOLD = 30;
+            if (isNaN(availableTime) || availableTime <= 0) {
+                alert('Please enter a valid number of minutes.');
+                return;
+            }
+            makeTravelRequest(availableTime <= TIME_THRESHOLD);
+        }
+
+        function showTicketPage() {
+            updateTicketDetails();
+            navigateTo('page7');
+        }
+        
+        function proceedToBuses() {
+            document.getElementById('bus-from').textContent = apiResponseData.allotted_station;
+            document.getElementById('bus-to').textContent = apiResponseData.original_destination;
+            navigateTo('page6');
+        }
+        
+        function updateTicketDetails() {
+            if (!apiResponseData) return;
+            const isReallocated = apiResponseData.decision === 'REALLOCATE';
+            document.getElementById('booked-station').textContent = isReallocated ? apiResponseData.original_destination : apiResponseData.allotted_station;
+            document.getElementById('allotted-station').textContent = apiResponseData.allotted_station;
+            const busRow = document.getElementById('bus-row');
+            if (isReallocated && selectedBus) {
+                busRow.style.display = 'flex';
+                document.getElementById('bus-selected').textContent = selectedBus;
+            } else {
+                busRow.style.display = 'none';
+            }
+            if (apiResponseData.needsWheelchair && apiResponseData.wheelchairInfo) {
+                const id = apiResponseData.wheelchairInfo.wheelchair_id;
+                const coach = apiResponseData.wheelchairInfo.coach;
+                document.getElementById('wheelchair-allotted').textContent = `Wheelchair ${id} allotted. Please board at coach ${coach}.`;
+            } else {
+                document.getElementById('wheelchair-allotted').textContent = 'Not required';
+            }
+        }
+        
+        function navigateTo(pageKey, isGoingBack = false) { if (!isGoingBack && currentPage !== pageKey) { pageHistory.push(currentPage); } document.querySelector('.back-button')?.remove(); document.querySelectorAll('.page').forEach(page => page.classList.remove('active')); document.getElementById(pageKey).classList.add('active'); currentPage = pageKey; updateProgressBar(pageKey); if (pageKey === 'page2') resetSelection(); if (pageKey !== 'page1') addBackButton(); if (pageKey === 'page1') resetSystemState(); }
+        function navigateBack() { if (pageHistory.length > 0) { const lastPage = pageHistory.pop(); navigateTo(lastPage, true); } }
+        function addBackButton() { const backBtn = document.createElement('button'); backBtn.className = 'nav-button back-button'; backBtn.innerHTML = '&larr; Back'; backBtn.onclick = navigateBack; document.getElementById('page-container').appendChild(backBtn); }
+        function selectStation(station, element) { if (selectedOption) selectedOption.classList.remove('selected'); selectedOption = element; selectedOption.classList.add('selected'); selectedDestination = station; document.getElementById('selected-station').innerHTML = `<span class="selected-label">Currently selected:</span> ${station}`; document.getElementById('confirm-btn').disabled = false; }
+        function selectBus(bus, element) { document.querySelectorAll('#bus-list .station-option').forEach(opt => opt.classList.remove('selected')); element.classList.add('selected'); selectedBus = bus; document.getElementById('selected-bus').textContent = bus; document.getElementById('bus-confirm-btn').disabled = false; }
+        function resetSelection() { if (selectedOption) { selectedOption.classList.remove('selected'); selectedOption = null; } selectedDestination = null; document.getElementById('selected-station').innerHTML = `<span class="selected-label">Currently selected:</span> None`; document.getElementById('confirm-btn').disabled = true; }
+        function resetSystemState() { resetSelection(); apiResponseData = null; selectedBus = null; pageHistory = []; }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const page3 = document.getElementById('page3');
+            page3.querySelector('.yes-button').onclick = () => navigateTo('emergency-time-page');
+            page3.querySelector('.no-button').onclick = () => makeTravelRequest(false);
+            
+            document.querySelector('#page4 .yes-button').onclick = () => handleWheelchairRequest(false);
+            document.querySelector('#page4 .no-button').onclick = () => handleNoWheelchair(false);
+            
+            document.querySelector('#page5 .yes-button').onclick = () => handleWheelchairRequest(true);
+            document.querySelector('#page5 .no-button').onclick = () => handleNoWheelchair(true);
+
+            document.querySelector('#page8 .nav-button').onclick = finalizeBooking;
+            
+            updateProgressBar('page1');
+        });
+    </script>
+</body>
+</html>
